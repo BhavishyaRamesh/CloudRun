@@ -1,1 +1,2 @@
-no need
+# ignore all txt files
+*.txt
