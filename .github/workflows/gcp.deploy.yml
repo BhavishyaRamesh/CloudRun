@@ -20,9 +20,8 @@ jobs:
           uses: google-github-actions/setup-gcloud@v0
           with:
             project_id: ${{ secrets.wsl-poc }}
-            service_account_email: ${{ secrets.lokesh@worksitelabs.com }}
-            service_account_key: ${{ secrets.WSL@loki1204 }}
-
+          
+        
         - name: Configure Docker
           run: gcloud auth configure-docker --quiet
 
