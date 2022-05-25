@@ -31,9 +31,6 @@ jobs:
         - name: Build Docker image
           run: docker build -t nginx .
 
-        - name: Test Docker image
-          run: docker run nginx sh -c "go test -v"
-
         - name: Push Docker image
           run: docker push nginx
 
