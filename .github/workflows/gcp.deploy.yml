@@ -31,8 +31,7 @@ jobs:
         - name: Build Docker image
           run: docker build -t nginx .
 
-        - name: Push Docker image
-          run: docker push nginx
+        
 
         - name: Deploy Docker image
           run: gcloud run deploy ${{ secrets.wsl-poc }} --image nginx --region us-central1 --platform managed
