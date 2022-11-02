@@ -9,10 +9,12 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-     - name: JMeter Test
+     - name: Checkout Repo
+       uses: actions/checkout@v2
+     - name: JMeter-Test
        uses: QAInsights/PerfAction@v3.1
        with:
-         test-plan-path: ./testplan/result.jmx
+         test-plan-path: /testplan/result.jmx
          args: ""
      - name: Upload Results
        uses: actions/upload-artifact@v2
