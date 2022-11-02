@@ -12,7 +12,7 @@ jobs:
      - name: JMeter Test
        uses: QAInsights/PerfAction@v3.1
        with:
-         test-plan-path: C:\Software\apache-jmeter-5.5\apache-jmeter-5.5\bin\resu;t.jmx
+         test-plan-path: C:/Users/User/OneDrive/Documents/jmeter/resu;t.jmx
          args: ""
      - name: Upload Results
        uses: actions/upload-artifact@v2
