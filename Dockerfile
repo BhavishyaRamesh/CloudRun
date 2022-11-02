@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM almalinux:latest
 WORKDIR /usr/app/src
 COPY package*.json ./
 
