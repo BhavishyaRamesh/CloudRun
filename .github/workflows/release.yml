@@ -9,16 +9,20 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-     - name: Checkout Repo
-       uses: actions/checkout@v2
-       
-     - name: JMeter-Test
-       uses: ./
+     - uses: actions/checkout@v3
+
+     - name: Build Docker Image
+       run: docker image build . --file Dockerfile --tag ciromota/nessus-scanner:latest
+
+     - name: Run Trivy vulnerability scanner
+       uses: aquasecurity/trivy-action@master
        with:
-         test-plan-path: ./testplan/result.jmx
-         args: ""
-     - name: Upload Results
-       uses: actions/upload-artifact@v2
-       with:
-         name: jmeter-results
-         path: result.jtl
+          image-ref: 'ciromota/nessus-scanner:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
+      
+     - name: Docker Container Run
+       run: docker container run -td --name nessus-scanner -p 8834:8834 -v /etc/localtime:/etc/localtime ciromota/nessus-scanner:latest
