@@ -1,28 +1,41 @@
-# Dockerfile for Apache JMeter for Windows
-# Indicates that the windowsservercore along with OpenJDK will be used as the base image.
-FROM openjdk:8-windowsservercore
+# inspired by https://github.com/hauptmedia/docker-jmeter  and
+# https://github.com/hhcordero/docker-jmeter-server/blob/master/Dockerfile
+FROM alpine:3.12
 
-ARG JMETER_VERSION="5.4.1"
-ENV JMETER_HOME /apache-jmeter-$JMETER_VERSION/apache-jmeter-$JMETER_VERSION/
+MAINTAINER Just van den Broecke<just@justobjects.nl>
 
-# Metadata indicating an image maintainer.
-LABEL maintainer="NaveenKumar Namachivayam" \
-      website="www.qainsights.com"
+ARG JMETER_VERSION="5.5"
+ENV JMETER_HOME /opt/apache-jmeter-${JMETER_VERSION}
+ENV JMETER_CUSTOM_PLUGINS_FOLDER /plugins
+ENV	JMETER_BIN	${JMETER_HOME}/bin
+ENV	JMETER_DOWNLOAD_URL  https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz
 
-# Downloads JMeterfrom one of the mirrors, if you prefer to change, you can change the URL
-RUN Invoke-WebRequest -URI https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-$env:JMETER_VERSION.zip \
--UseBasicParsing -Outfile /apache-jmeter-$env:JMETER_VERSION.zip
+# Install extra packages
+# Set TimeZone, See: https://github.com/gliderlabs/docker-alpine/issues/136#issuecomment-612751142
+ARG TZ="Europe/Amsterdam"
+ENV TZ ${TZ}
+RUN    apk update \
+	&& apk upgrade \
+	&& apk add ca-certificates \
+	&& update-ca-certificates \
+	&& apk add --update openjdk8-jre tzdata curl unzip bash \
+	&& apk add --no-cache nss \
+	&& rm -rf /var/cache/apk/* \
+	&& mkdir -p /tmp/dependencies  \
+	&& curl -L --silent ${JMETER_DOWNLOAD_URL} >  /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz  \
+	&& mkdir -p /opt  \
+	&& tar -xzf /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz -C /opt  \
+	&& rm -rf /tmp/dependencies
 
-# Extract the downloaded zip file
-RUN Expand-Archive /apache-jmeter-$env:JMETER_VERSION.zip -DestinationPath /apache-jmeter-$env:JMETER_VERSION
+# TODO: plugins (later)
+# && unzip -oq "/tmp/dependencies/JMeterPlugins-*.zip" -d $JMETER_HOME
 
-# Copies the entrypoint.ps1
-COPY /entrypoint.ps1 /entrypoint.ps1
-COPY /jmeter-plugins-install.ps1 /jmeter-plugins-install.ps1
+# Set global PATH such that "jmeter" command is found
+ENV PATH $PATH:$JMETER_BIN
 
-RUN ["powershell.exe","/jmeter-plugins-install.ps1","$env:JMETER_VERSION"]
-# Sets the Working directory
-WORKDIR ${JMETER_HOME}/bin
+# Entrypoint has same signature as "jmeter" command
+COPY entrypoint.sh /
 
-# Sets a command or process that will run each time a container is run from the new image. For detailed instruction, go to entrypoint.ps1 file.
-ENTRYPOINT ["powershell.exe", "/entrypoint.ps1"]
+WORKDIR	${JMETER_HOME}
+
+ENTRYPOINT ["/entrypoint.sh"]
