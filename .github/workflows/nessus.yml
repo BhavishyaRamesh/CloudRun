@@ -1,0 +1,28 @@
+name: Nessus
+on:
+  push:
+    branches:
+      - DEV
+    
+jobs:
+  Jmeter:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v3
+
+     - name: Build Docker Image
+       run: docker image build . --file Dockerfile --tag ciromota/nessus-scanner:latest
+
+     - name: Run Trivy vulnerability scanner
+       uses: aquasecurity/trivy-action@master
+       with:
+          image-ref: 'ciromota/nessus-scanner:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
+      
+     - name: Docker Container Run
+       run: docker container run -td --name nessus-scanner -p 8834:8834 -v /etc/localtime:/etc/localtime ciromota/nessus-scanner:lates
